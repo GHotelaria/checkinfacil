@@ -1,0 +1,288 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Check-in Profissional</title>
+
+<style>
+* {
+    box-sizing: border-box;
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+}
+
+body {
+    margin: 0;
+    background: linear-gradient(135deg, #131921, #1f2a38);
+    color: white;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 100vh;
+}
+
+/* CARD */
+.box {
+    width: 95%;
+    max-width: 420px;
+    background: #1f2a38;
+    padding: 25px;
+    border-radius: 20px;
+    box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+    text-align: center;
+}
+
+/* PROGRESSO */
+.progress {
+    font-size: 12px;
+    opacity: 0.7;
+    margin-bottom: 10px;
+}
+
+h2 {
+    margin-bottom: 10px;
+}
+
+/* INPUT */
+input, select {
+    width: 100%;
+    padding: 14px;
+    margin-top: 15px;
+    border-radius: 10px;
+    border: none;
+    font-size: 16px;
+    outline: none;
+}
+
+/* BOTÕES */
+.buttons {
+    display: flex;
+    justify-content: space-between;
+    margin-top: 20px;
+}
+
+button {
+    width: 48%;
+    padding: 12px;
+    border: none;
+    border-radius: 10px;
+    font-size: 14px;
+    cursor: pointer;
+}
+
+.next { background: #00c853; color: white; }
+.back { background: #444; color: white; }
+
+textarea {
+    width: 100%;
+    height: 220px;
+    margin-top: 15px;
+    border-radius: 10px;
+    padding: 10px;
+    border: none;
+}
+
+.final-buttons {
+    display: flex;
+    gap: 10px;
+    margin-top: 10px;
+}
+
+.copy { background: #00c853; }
+.reset { background: #ff5252; }
+
+.footer {
+    margin-top: 15px;
+    font-size: 12px;
+    opacity: 0.6;
+}
+</style>
+</head>
+
+<body>
+
+<div class="box">
+    <div class="progress" id="progress"></div>
+    <h2 id="pergunta"></h2>
+
+    <div id="inputArea"></div>
+
+    <div class="buttons">
+        <button class="back" onclick="voltar()">Voltar</button>
+        <button class="next" onclick="avancar()">Avançar</button>
+    </div>
+
+    <textarea id="resultado" style="display:none;"></textarea>
+
+    <div class="final-buttons" id="finalBtns" style="display:none;">
+        <button class="copy" onclick="copiar()">Copiar</button>
+        <button class="reset" onclick="reiniciar()">Novo</button>
+    </div>
+
+    <div class="footer">Sistema desenvolvido por Recepcionista Christiano</div>
+</div>
+
+<script>
+
+// 📅 HOJE AUTOMÁTICO
+function hoje() {
+    let d = new Date();
+    let mes = String(d.getMonth()+1).padStart(2,'0');
+    let dia = String(d.getDate()).padStart(2,'0');
+    return `${d.getFullYear()}-${mes}-${dia}`;
+}
+
+let etapa = 0;
+
+let dados = {
+    quarto: "",
+    titular: "",
+    acompanhantes: "",
+    qtd: "",
+    checkin: hoje(),
+    checkout: "",
+    plataforma: "",
+    pagamento: "",
+    pousada: ""
+};
+
+const perguntas = [
+    { texto: "Número do quarto", tipo: "select", opcoes: ["01","02","03","04","05","06","07","08","09","10"], campo: "quarto" },
+    { texto: "Nome do titular", tipo: "text", campo: "titular" },
+    { texto: "Acompanhantes (opcional)", tipo: "text", campo: "acompanhantes" },
+    { texto: "Quantidade de hóspedes", tipo: "number", campo: "qtd" },
+    { texto: "Data de check-in", tipo: "date", campo: "checkin" },
+    { texto: "Data de check-out", tipo: "date", campo: "checkout" },
+    { texto: "Plataforma", tipo: "select", opcoes: ["Booking","Expedia","Airbnb","Direta","Walk-in"], campo: "plataforma" },
+    { texto: "Forma de pagamento", tipo: "select", opcoes: ["Crédito","Débito","Pix","Dinheiro","Slip Assinado"], campo: "pagamento" },
+    { texto: "Pousada", tipo: "select", opcoes: ["PCC","CLASS","CENTRO UP"], campo: "pousada" }
+];
+
+// 🔥 FUNÇÃO ROBUSTA PRA iPHONE
+function criarInput(p, valorAtual) {
+    let input;
+
+    if (p.tipo === "select") {
+        input = document.createElement("select");
+
+        p.opcoes.forEach(op => {
+            let opt = document.createElement("option");
+            opt.value = op;
+            opt.textContent = op;
+            if (op === valorAtual) opt.selected = true;
+            input.appendChild(opt);
+        });
+
+    } else {
+        input = document.createElement("input");
+        input.type = p.tipo;
+        input.value = valorAtual;
+    }
+
+    input.id = "input";
+    return input;
+}
+
+function mostrarPergunta() {
+    let p = perguntas[etapa];
+
+    document.getElementById("pergunta").innerText = p.texto;
+    document.getElementById("progress").innerText = `Etapa ${etapa+1} de ${perguntas.length}`;
+
+    let valorAtual = dados[p.campo] || "";
+
+    let area = document.getElementById("inputArea");
+    area.innerHTML = "";
+
+    let input = criarInput(p, valorAtual);
+    area.appendChild(input);
+
+    // 🔥 FOCO (ESSENCIAL PRA iPHONE)
+    setTimeout(() => {
+        input.focus();
+        input.click();
+    }, 200);
+}
+
+function avancar() {
+    let input = document.getElementById("input");
+    let valor = input.value;
+
+    if (!valor && perguntas[etapa].campo !== "acompanhantes") {
+        alert("Preencha este campo!");
+        return;
+    }
+
+    dados[perguntas[etapa].campo] = valor;
+
+    etapa++;
+
+    if (etapa >= perguntas.length) {
+        gerarMensagem();
+        return;
+    }
+
+    mostrarPergunta();
+}
+
+function voltar() {
+    if (etapa === 0) return;
+    etapa--;
+    mostrarPergunta();
+}
+
+function formatarData(data) {
+    if (!data) return "-";
+    let p = data.split("-");
+    return p[2] + "/" + p[1];
+}
+
+function gerarMensagem() {
+    let msg = `*CHECK-IN REALIZADO* 🏨
+*Quarto:* ${dados.quarto}
+*Titular:* ${dados.titular}
+*Acompanhantes:* ${dados.acompanhantes || "Não informado"}
+*Hóspedes:* ${dados.qtd}
+*Entrada:* ${formatarData(dados.checkin)}
+*Saída:* ${formatarData(dados.checkout)}
+*Plataforma:* ${dados.plataforma}
+*Pagamento:* ${dados.pagamento}
+
+📋 FNRH preenchida no Gov.br ✅
+
+*${dados.pousada}*`;
+
+    document.getElementById("inputArea").style.display = "none";
+    document.querySelector(".buttons").style.display = "none";
+
+    let res = document.getElementById("resultado");
+    res.style.display = "block";
+    res.value = msg;
+
+    document.getElementById("finalBtns").style.display = "flex";
+}
+
+function copiar() {
+    let texto = document.getElementById("resultado").value;
+
+    navigator.clipboard.writeText(texto).then(() => {
+        document.querySelector(".copy").innerText = "Copiado ✅";
+    });
+}
+
+function reiniciar() {
+    location.reload();
+}
+
+// ENTER
+document.addEventListener("keydown", function(e) {
+    if (e.key === "Enter") avancar();
+});
+
+// START
+mostrarPergunta();
+
+</script>
+
+</body>
+</html>
