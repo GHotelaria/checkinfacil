@@ -21,7 +21,6 @@ body {
     height: 100vh;
 }
 
-/* CARD */
 .box {
     width: 95%;
     max-width: 420px;
@@ -32,7 +31,6 @@ body {
     text-align: center;
 }
 
-/* PROGRESSO */
 .progress {
     font-size: 12px;
     opacity: 0.7;
@@ -43,7 +41,6 @@ h2 {
     margin-bottom: 10px;
 }
 
-/* INPUT */
 input, select {
     width: 100%;
     padding: 14px;
@@ -54,7 +51,6 @@ input, select {
     outline: none;
 }
 
-/* BOTÕES */
 .buttons {
     display: flex;
     justify-content: space-between;
@@ -124,7 +120,6 @@ textarea {
 
 <script>
 
-// 📅 HOJE AUTOMÁTICO
 function hoje() {
     let d = new Date();
     let mes = String(d.getMonth()+1).padStart(2,'0');
@@ -153,13 +148,20 @@ const perguntas = [
     { texto: "Quantidade de hóspedes", tipo: "number", campo: "qtd" },
     { texto: "Data de check-in", tipo: "date", campo: "checkin" },
     { texto: "Data de check-out", tipo: "date", campo: "checkout" },
-    { texto: "Plataforma", tipo: "select", opcoes: ["Booking","Expedia","Airbnb","Direta","Walk-in"], campo: "plataforma" },
-    { texto: "Forma de pagamento", tipo: "select", opcoes: ["Crédito","Débito","Pix","Dinheiro","Slip Assinado"], campo: "pagamento" },
+
+    { texto: "Plataforma", tipo: "select",
+      opcoes: ["", "Booking","Expedia","Airbnb","Direta","Walk-in","Outro"],
+      campo: "plataforma" },
+
+    { texto: "Forma de pagamento", tipo: "select",
+      opcoes: ["", "Crédito","Débito","Pix","Dinheiro","Slip Assinado","Outro"],
+      campo: "pagamento" },
+
     { texto: "Pousada", tipo: "select", opcoes: ["PCC","CLASS","CENTRO UP"], campo: "pousada" }
 ];
 
-// 🔥 FUNÇÃO ROBUSTA PRA iPHONE
 function criarInput(p, valorAtual) {
+    let container = document.createElement("div");
     let input;
 
     if (p.tipo === "select") {
@@ -168,10 +170,23 @@ function criarInput(p, valorAtual) {
         p.opcoes.forEach(op => {
             let opt = document.createElement("option");
             opt.value = op;
-            opt.textContent = op;
+            opt.textContent = op || "Não informado";
             if (op === valorAtual) opt.selected = true;
             input.appendChild(opt);
         });
+
+        input.onchange = () => {
+            let old = document.getElementById("extraInput");
+            if (old) old.remove();
+
+            if (input.value === "Outro") {
+                let extra = document.createElement("input");
+                extra.placeholder = "Digite aqui...";
+                extra.id = "extraInput";
+                container.appendChild(extra);
+                extra.focus();
+            }
+        };
 
     } else {
         input = document.createElement("input");
@@ -180,7 +195,8 @@ function criarInput(p, valorAtual) {
     }
 
     input.id = "input";
-    return input;
+    container.appendChild(input);
+    return container;
 }
 
 function mostrarPergunta() {
@@ -194,11 +210,11 @@ function mostrarPergunta() {
     let area = document.getElementById("inputArea");
     area.innerHTML = "";
 
-    let input = criarInput(p, valorAtual);
-    area.appendChild(input);
+    let inputBox = criarInput(p, valorAtual);
+    area.appendChild(inputBox);
 
-    // 🔥 FOCO (ESSENCIAL PRA iPHONE)
     setTimeout(() => {
+        let input = document.getElementById("input");
         input.focus();
         input.click();
     }, 200);
@@ -208,7 +224,14 @@ function avancar() {
     let input = document.getElementById("input");
     let valor = input.value;
 
-    if (!valor && perguntas[etapa].campo !== "acompanhantes") {
+    let extra = document.getElementById("extraInput");
+    if (valor === "Outro" && extra) {
+        valor = extra.value || "Outro";
+    }
+
+    let obrigatorios = ["quarto","titular","qtd","checkin","checkout"];
+
+    if (!valor && obrigatorios.includes(perguntas[etapa].campo)) {
         alert("Preencha este campo!");
         return;
     }
@@ -245,8 +268,8 @@ function gerarMensagem() {
 *Hóspedes:* ${dados.qtd}
 *Entrada:* ${formatarData(dados.checkin)}
 *Saída:* ${formatarData(dados.checkout)}
-*Plataforma:* ${dados.plataforma}
-*Pagamento:* ${dados.pagamento}
+*Plataforma:* ${dados.plataforma || "Não informado"}
+*Pagamento:* ${dados.pagamento || "Não informado"}
 
 📋 FNRH preenchida no Gov.br ✅
 
@@ -274,12 +297,10 @@ function reiniciar() {
     location.reload();
 }
 
-// ENTER
 document.addEventListener("keydown", function(e) {
     if (e.key === "Enter") avancar();
 });
 
-// START
 mostrarPergunta();
 
 </script>
