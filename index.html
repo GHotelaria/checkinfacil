@@ -261,19 +261,29 @@ function formatarData(data) {
 }
 
 function gerarMensagem() {
-    let msg = `*CHECK-IN REALIZADO* 🏨
-*Quarto:* ${dados.quarto}
-*Titular:* ${dados.titular}
-*Acompanhantes:* ${dados.acompanhantes || "Não informado"}
-*Hóspedes:* ${dados.qtd}
-*Entrada:* ${formatarData(dados.checkin)}
-*Saída:* ${formatarData(dados.checkout)}
-*Plataforma:* ${dados.plataforma || "Não informado"}
-*Pagamento:* ${dados.pagamento || "Não informado"}
-
-📋 FNRH preenchida no Gov.br ✅
-
-*${dados.pousada}*`;
+    let msg = `*CHECK-IN REALIZADO* 🏨`;
+    
+    msg += `\n*Quarto:* ${dados.quarto}`;
+    msg += `\n*Titular:* ${dados.titular}`;
+    
+    if (dados.acompanhantes) {
+        msg += `\n*Acompanhantes:* ${dados.acompanhantes}`;
+    }
+    
+    msg += `\n*Hóspedes:* ${dados.qtd}`;
+    msg += `\n*Entrada:* ${formatarData(dados.checkin)}`;
+    msg += `\n*Saída:* ${formatarData(dados.checkout)}`;
+    
+    if (dados.plataforma) {
+        msg += `\n*Plataforma:* ${dados.plataforma}`;
+    }
+    
+    if (dados.pagamento) {
+        msg += `\n*Pagamento:* ${dados.pagamento}`;
+    }
+    
+    msg += `\n\n📋 FNRH preenchida no Gov.br ✅`;
+    msg += `\n\n*${dados.pousada}*`;
 
     document.getElementById("inputArea").style.display = "none";
     document.querySelector(".buttons").style.display = "none";
